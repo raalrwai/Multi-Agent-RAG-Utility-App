@@ -1,0 +1,7 @@
+numpy
+pandas
+opencv-python
+pdf2image
+openai
+pinecone
+python-dotenv
