@@ -2,6 +2,7 @@ import os
 import tempfile
 import zipfile
 import hashlib
+import time
 
 import numpy as np
 import pandas as pd
@@ -15,17 +16,28 @@ load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
-PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT')  
+PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT')
 PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
+# try:
+#     index.delete(delete_all=True)
+#     print("Pinecone index reset successfully.")
+# except Exception as e:
+#     print(f"Could not reset index (probably no namespace yet): {e}")
+
+
+
+def hash_file(filepath):
+    with open(filepath, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
 
 
 def vision_embed_file(file_path, multi_modal_model='gpt-4.1-mini', embedding_model='text-embedding-3-small'):
-    def create_file(file_path):
-        with open(file_path, "rb") as file_content:
+    def create_file(file_path_inner):
+        with open(file_path_inner, "rb") as file_content:
             result = client.files.create(
                 file=file_content,
                 purpose="vision",
@@ -33,31 +45,25 @@ def vision_embed_file(file_path, multi_modal_model='gpt-4.1-mini', embedding_mod
             return result.id
 
     file_id = create_file(file_path)
+    # st.write(f"Debug: created file_id: {file_id}")
+
+    time.sleep(2)
 
     response = client.responses.create(
         model=multi_modal_model,
         input=[{
             'role': 'user',
-            'content': [{
-                'type': 'input_text',
-                'text': "What's in this image?"
-            }, {
-                'type': 'input_image',
-                'file_id': file_id
-            }]
+            'content': [
+                {'type': 'input_text', 'text': "What's in this image?"},
+                {'type': 'input_image', 'file_id': file_id}
+            ]
         }]
     )
 
     caption = response.output_text
-    embedding_object = client.embeddings.create(input=caption, model=embedding_model)
-    vector = embedding_object.data[0].embedding
+    embedding = client.embeddings.create(input=caption, model=embedding_model).data[0].embedding
 
-    return {'image_caption': caption, 'file_id': file_id, 'embedding': vector}
-
-
-def hash_file(filepath):
-    with open(filepath, "rb") as f:
-        return hashlib.sha256(f.read()).hexdigest()
+    return {'image_caption': caption, 'file_id': file_id, 'embedding': embedding}
 
 
 def process_zip(uploaded_zip_file):
@@ -83,17 +89,14 @@ def process_zip(uploaded_zip_file):
         records = []
         for jpeg_file in os.listdir(jpeg_dir):
             jpeg_path = os.path.join(jpeg_dir, jpeg_file)
-            
             vector_id = hash_file(jpeg_path)
 
-            existing = index.fetch(ids=[vector_id])
-            if vector_id in existing.vectors:
-                print(f"Skipping duplicate: {jpeg_file}")
+            res = index.fetch(ids=[vector_id])
+            if vector_id in res.vectors:
+                # st.warning(f"Skipping duplicate: {jpeg_file}")
                 continue
 
-            # 🤖 Generate embedding and caption
             embed_result = vision_embed_file(jpeg_path)
-
             records.append({
                 'id': vector_id,
                 'values': embed_result['embedding'],
@@ -105,25 +108,16 @@ def process_zip(uploaded_zip_file):
 
 
 def upsert_to_pinecone(df):
-    vectors = []
-    for _, row in df.iterrows():
-        vectors.append((row['id'], row['values'], row['metadata']))
+    vectors = list(df.itertuples(index=False, name=None))
     res = index.upsert(vectors=vectors)
     return res
 
 
 def get_context(user_query, embed_model='text-embedding-3-small', k=5):
     query_embedding = client.embeddings.create(input=user_query, model=embed_model).data[0].embedding
-    query_response = index.query(
-        vector=query_embedding,
-        top_k=k,
-        include_metadata=True
-    )
+    query_response = index.query(vector=query_embedding, top_k=k, include_metadata=True)
 
-    contexts = []
-    for match in query_response.matches:
-        contexts.append(match.metadata.get('caption', ''))
-
+    contexts = [match.metadata.get('caption', '') for match in query_response.matches]
     return contexts, user_query
 
 
@@ -136,23 +130,29 @@ def main():
     st.title("Electricity Bills Visual QA")
 
     st.markdown("""
-    Upload a ZIP file containing your electricity bill PDFs.
-    The app will process, embed images, and enable you to query them.
+    Upload a ZIP file containing your electricity bill **PDFs**.
+    This app will process and embed them visually and semantically, then let you query your bills with natural language.
     """)
 
     uploaded_zip = st.file_uploader("Upload ZIP of PDFs", type="zip")
 
     if uploaded_zip:
-        with st.spinner("Processing files and uploading embeddings..."):
+        with st.spinner("Processing and embedding your files..."):
             df = process_zip(uploaded_zip)
-            upsert_response = upsert_to_pinecone(df)
-            st.success(f"Upserted {upsert_response.get('upserted_count', 0)} vectors to Pinecone!")
+
+            if not df.empty:
+                upsert_response = upsert_to_pinecone(df)
+                st.success(f"Upserted {len(df)} vectors to Pinecone.")
+                time.sleep(2)
+
+            else:
+                st.info("No new documents to upsert all were duplicates.")
 
     user_query = st.text_input("Ask a question about your electricity bills:")
     if user_query:
         with st.spinner("Searching for answers..."):
             response = augmented_query(user_query)
-            st.markdown("### Results:")
+            st.markdown("Results")
             st.write(response)
 
 
