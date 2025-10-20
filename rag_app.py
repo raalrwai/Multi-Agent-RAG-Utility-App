@@ -172,20 +172,6 @@ def main():
     This app will process and embed them visually and semantically, then let you query your bills with natural language.
     """)
 
-    # uploaded_zip = st.file_uploader("Upload ZIP of PDFs", type="zip")
-
-    # if uploaded_zip:
-    #     with st.spinner("Processing and embedding your files..."):
-    #         df = process_zip(uploaded_zip)
-
-    #         if not df.empty:
-    #             upsert_response = upsert_to_pinecone(df)
-    #             st.success(f"Upserted {len(df)} vectors to Pinecone.")
-    #             time.sleep(2)
-
-    #         else:
-    #             st.info("No new documents to upsert all were duplicates.")
-
     
     jpeg_upload = st.file_uploader("Upload PDF file", type='pdf')
 
@@ -194,10 +180,13 @@ def main():
         jpeg_record = file_to_embed(jpeg_upload)
         upsert_response = index.upsert([tuple(jpeg_record.values())])
 
+    user_name = st.text_input("Full Name:")
+
     user_query = st.text_input("Ask a question about your electricity bills:")
     if user_query:
         with st.spinner("Searching for answers..."):
-            response = ask_gpt_response(system_prompt=primer, user_prompt=augmented_query(user_query))
+            
+            # response = ask_gpt_response(system_prompt=primer, user_prompt=augmented_query(user_query))
             st.markdown("Results")
             st.write(response)
 
