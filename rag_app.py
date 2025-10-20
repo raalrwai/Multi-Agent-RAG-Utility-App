@@ -65,7 +65,7 @@ def file_to_embed(file):
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
     
-        image = convert_from_path(file_path)
+        image = convert_from_path(file_path,poppler_path='poppler/Library/bin')
         jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
         image[0].save(jpeg_path, 'JPEG')
 
@@ -99,7 +99,7 @@ def process_zip(uploaded_zip_file):
         for pdf_file in os.listdir(pdf_dir):
             if pdf_file.lower().endswith(".pdf"):
                 pdf_path = os.path.join(pdf_dir, pdf_file)
-                images = convert_from_path(pdf_path)
+                images = convert_from_path(pdf_path,poppler_path='poppler/Library/bin')
                 jpeg_path = os.path.join(jpeg_dir, pdf_file[:-4] + ".jpeg")
                 images[0].save(jpeg_path, 'JPEG')
 
