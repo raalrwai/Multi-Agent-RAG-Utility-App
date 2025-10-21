@@ -28,7 +28,14 @@ index = pc.Index(PINECONE_INDEX_NAME)
 
 
 def main():
+    st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
     st.title("Electricity Bills Visual QA")
+
+    st.sidebar.title("Navigation")
+    st.sidebar.info("Use this app to upload your electricity bill PDF and ask questions about it.")
+    st.sidebar.markdown("**Example questions:**")
+    st.sidebar.markdown("- What was my total bill in July?\n- Why is my bill amount so high? \n- What is the due date for my latest bill?")
+
 
     st.markdown("""
     Upload a PDF file containing your electricity bill.
