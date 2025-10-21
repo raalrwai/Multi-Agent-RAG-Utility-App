@@ -122,6 +122,11 @@ def process_zip(uploaded_zip_file):
         df = pd.DataFrame(records)
         return df
 
+# def upsert_to_pinecone(df):
+#     vectors = list(df.itertuples(index=False, name=None))
+#     res = index.upsert(vectors=vectors)
+#     return res
+
 
 def get_context(user_query, embed_model='text-embedding-3-small', k=5):
     query_embedding = client.embeddings.create(input=user_query, model=embed_model).data[0].embedding
@@ -166,6 +171,8 @@ def main():
     if jpeg_upload:
         jpeg_record = file_to_embed(jpeg_upload)
         upsert_response = index.upsert([tuple(jpeg_record.values())])
+
+    user_name = st.text_input("Full Name:")
 
     user_query = st.text_input("Ask a question about your electricity bills:")
     if user_query:
