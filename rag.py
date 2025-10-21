@@ -97,6 +97,7 @@ def file_to_upsert(file):
     return index.upsert([tuple(record.values())])
 
 
+
 def retrieve_bill_embeddings(user_query, embed_model='text-embedding-3-small', k=5):
     # print('QUERY:  ', user_query)
     query_embedding = client.embeddings.create(input=user_query, model=embed_model).data[0].embedding
