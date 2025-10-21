@@ -7,6 +7,7 @@ import time
 import numpy as np
 import pandas as pd
 from pdf2image import convert_from_path
+import pymupdf
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -62,21 +63,31 @@ def vision_embed_file(file_path, multi_modal_model='gpt-4.1-mini', embedding_mod
 
 def file_to_upsert(file):        
     with tempfile.TemporaryDirectory() as tmp_dir:
+
         file_path = os.path.join(tmp_dir, "uploaded.pdf")
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
-    
-        image = convert_from_path(file_path)
-        jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
-        image[0].save(jpeg_path, 'JPEG')
 
-        vector_id = hash_file(jpeg_path)
+        
+        doc = pymupdf.open(file_path)
+        pix = doc[0].get_pixmap(dpi=300)        
+        png_path = os.path.join(tmp_dir,'uploaded.png')  
+        pix.save(png_path)
+        doc.close()  
+      
+        vector_id = hash_file(png_path)
+
+        # image = convert_from_path(file_path)
+        # jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
+        # image[0].save(jpeg_path, 'JPEG')
+
+        # vector_id = hash_file(jpeg_path)
 
         res = index.fetch(ids=[vector_id])
         if vector_id in res.vectors:
             st.warning(f"File already uploaded")
 
-        embed_result = vision_embed_file(jpeg_path)
+        embed_result = vision_embed_file(png_path)
         record = {
             'id': vector_id,
             'values': embed_result['embedding'],
