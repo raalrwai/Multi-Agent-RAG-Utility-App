@@ -6,3 +6,4 @@ openai
 pinecone
 python-dotenv
 streamlit
+pymupdf
