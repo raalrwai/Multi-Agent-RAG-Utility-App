@@ -106,13 +106,18 @@ def retrieve_bill_embeddings(user_query, embed_model='text-embedding-3-small', k
     contexts = [match.metadata.get('caption', '') for match in query_response.matches]
     return contexts
 
-def get_response(system_prompt, user_prompt, model='gpt-5-chat-latest'):
-  response = client.responses.create(
-      model=model,
-      input=[
-          {"role":"developer",
-          "content":system_prompt},
-          {"role":"user",
-           "content":user_prompt}])
-  return response.output_text
+# def get_response(system_prompt, user_prompt, model='gpt-5-chat-latest'):
+#   response = client.responses.create(
+#       model=model,
+#       input=[
+#           {"role":"developer",
+#           "content":system_prompt},
+#           {"role":"user",
+#            "content":user_prompt}])
+#   return response.output_text
+
+def history_to_file(history):
+    # Uploads history to pinecone DB
+    # maybe, idk if we gonna use this yet
+    return None
 

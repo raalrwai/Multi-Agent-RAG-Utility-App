@@ -14,7 +14,7 @@ from pinecone import Pinecone
 
 
 import rag
-import billing_agent as bl_agent
+import billing_agent_old as bl_agent
 
 
 load_dotenv()

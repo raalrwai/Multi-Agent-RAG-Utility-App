@@ -36,68 +36,22 @@ tools = [
             },
             "required": ["name"],
         },
-    },   
-    {
-        "type": "function",
-        "name": "upload_bill",
-        "description": "Upload a given bill to the database",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "bill": {
-                    "type": "string",
-                    "description": "The bill to be uploaded",
-                },
-            
-            },
-            "required": ["bill"],
-        },
-    },  
-    {
-        "type": "function",
-        "name": "upload_history",
-        "description": "Uploads the chat history to the database for future reference.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "history": {
-                    "type": "string",
-                    "description": "A history log of a user conversation with our model.",
-                },
-            
-            },
-            "required": ["history"],
-        },
     },    
 ]
 
 def get_bills(name):
-    # print('NAME: ', name)
-    # print(name['name'])
-    return rag.retrieve_bill_embeddings(name['name'])
-
-def upload_bills(bill):
-    return rag.file_to_upsert(bill)
-
-# To be Made
-def upload_history(history):
-    return rag.history_to_upsert(history)
+    return None
 
 
 
-func_dict = {'get_bills': get_bills, 
-             'upload_bill': upload_bills,
-             'upload_history': upload_history
-             }
+func_dict = {'': }
 
 
-class Billing_Agent():
+class Explanation_Agent():
     def __init__(self):
-        system_instruction = {"role": "system", "content": "You are an agent whose role is to be in charge"
-                        "of managing a database containing bills. This includes uploading and downloading"
-                        "bills, and uploading the chat history once a conversation has been completed. If"
-                        "a requested bill has already been retrieved, return it again instead of downloading"
-                        "it again."}
+        system_instruction = {"role": "system", "content": "You are an agent whose role is to interpret bill "
+                        "and provide purely factual numbers and statistics from that bill that are relevant to"
+                        "a question."}
         self.input_list = [system_instruction]
 
     def make_request(self, query, model='gpt-5-chat-latest'):
