@@ -75,38 +75,35 @@ def get_response():
 func_dict = {'get_bills': get_bills, 'get_response': get_response}
 
 
-def ask_gpt(name, query, model='gpt-4.1-mini'):
+def ask_gpt(name, query, model='gpt-5-chat-latest'):
 
-    input_list = [{"role": "user", "content": 'find bills belonging to ' + name + ' and answer the following question:' + query}]
-    instruction = 'You are an assistant who talks with customers to help answer questions ' \
-    'about their electric usage. If the question requires information from an electric bill ' \
-    'to answer, find bills that belong to "' + name + '". Then if there are no bills with that name'\
-    'respond with only "No bills found with that name". The actual question for you to answer is "' +\
-     query +'"'
-    instruction = 'You are a friendly assistant who will help customer\'s and answer their question' \
-    'which is "' + query + '". If this question would not benefit from specific information, answer'
-    'it politely, otherwise, retrieve bill information that is under the name "' + name +\
-    '". Once you have the bills, make sure that their name is on the bill, otherwise answer with the '
-    'prhase "No bills found under that name. Refer to upload." If you do have a bill with their name, '
-    'go ahead and answer their original question with information from that bill.'
+    instruction = 'If the question requires a bill, then retrieve any bills with the name of ' \
+    '"' + name + '". Otherwise, repeat the question exactly which is "' + query + '"'
 
-    # input_list = [{"role": "user", "content": instruction}]
+    instruction = 'Check if the question needs a bill to be answered. The question is "'\
+    +query+'". If no, just answer the question. If yes, get bills belonging to "' + name +\
+    '" and then answer the question. Do not explain your thought process, just answer the '
+    'question. If there are no bills found with the given name, return only the error message'
+    'of "No bills found with that name"'
+    
+    # input_list = [{"role": "user", "content": 'find bills belonging to ' + name + ' and answer the following question:' + query}]
 
-    # 2. Prompt the model with tools defined
+    input_list = [{"role": "user", "content": instruction}]
+
+
     response = client.responses.create(
         model=model,
         tools=tools,
         input=input_list,
     )    
-    # Save function call outputs for subsequent requests
+    
     input_list += response.output
 
-    original_stdout = sys.stdout
-    # print(response)
-    with open('temp.txt', 'w') as f:
-        sys.stdout = f
-        print(response)
-    sys.stdout = original_stdout
+    # original_stdout = sys.stdout
+    # with open('temp.txt', 'w') as f:
+    #     sys.stdout = f
+    #     print(response)
+    # sys.stdout = original_stdout
 
     for item in response.output:
         if item.type == "function_call":
@@ -125,24 +122,30 @@ def ask_gpt(name, query, model='gpt-4.1-mini'):
                 })
 
 
+    final_instruction = 'You are a friendly assistant who will help customer\'s and answer their question.'
+
+    
+    
+    # input_list += [{"role": "developer", "content": 'You are a friendly assistant who will help customer\'s and answer' \
+    #                'their question. Perform friendly conversation, but if they ask a question that would require '
+    #                'information from a bill, make sure that the bill has their name on it, and then answer with as '
+    #                'few words as possible. If it does not have their name, reply with the words "No bill found".'}]
+    not_found_msg =  "Furthermore, if " + name + "does not show up in the bill' +\
+          print out 'No bills found with that name'."
+    # response = client.responses.create(
+    #     model=model,
+    #     instructions=final_instruction,
+    #     tools=tools,
+    #     input=input_list,
+    # )
     response = client.responses.create(
         model=model,
-        instructions= '',
+        instructions= query,
         tools=tools,
         input=input_list,
     )
 
-    # print("Final input:")
-    # print(input_list)
-
-
-    # # 5. The model should be able to give a response!
-    # print("Final output:")
-    # print(response.model_dump_json(indent=2))
-    # print("\n" + response.output_text)
-
     return response.output_text
-
 
 
 
@@ -158,6 +161,6 @@ if __name__ == '__main__':
             answer = '"' + ask_gpt(name,question).replace('\n', ' ').replace('"', "'") +'"'
             content = ','.join([name,question,answer]) + '\n'
             f.write(content)
-            break
+            
 
 
