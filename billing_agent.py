@@ -1,4 +1,5 @@
 import os
+import sys
 import tempfile
 import zipfile
 import hashlib
@@ -74,19 +75,35 @@ def get_response():
 func_dict = {'get_bills': get_bills, 'get_response': get_response}
 
 
-def ask_gpt(name, query, model='gpt-4.1-mini'):
+def ask_gpt(name, query, model='gpt-5-chat-latest'):
 
-    input_list = [{"role": "user", "content": 'find bills belonging to ' + name + ' and answer the following question:' + query}]
+    instruction = 'If the question requires a bill, then retrieve any bills with the name of ' \
+    '"' + name + '". Otherwise, repeat the question exactly which is "' + query + '"'
 
-    # 2. Prompt the model with tools defined
+    instruction = 'Check if the question needs a bill to be answered. The question is "'\
+    +query+'". If no, just answer the question. If yes, get bills belonging to "' + name +\
+    '" and then answer the question. Do not explain your thought process, just answer the '
+    'question. If there are no bills found with the given name, return only the error message'
+    'of "No bills found with that name"'
+    
+    # input_list = [{"role": "user", "content": 'find bills belonging to ' + name + ' and answer the following question:' + query}]
+
+    input_list = [{"role": "user", "content": instruction}]
+
+
     response = client.responses.create(
         model=model,
         tools=tools,
         input=input_list,
     )    
-
-    # Save function call outputs for subsequent requests
+    
     input_list += response.output
+
+    # original_stdout = sys.stdout
+    # with open('temp.txt', 'w') as f:
+    #     sys.stdout = f
+    #     print(response)
+    # sys.stdout = original_stdout
 
     for item in response.output:
         if item.type == "function_call":
@@ -105,22 +122,45 @@ def ask_gpt(name, query, model='gpt-4.1-mini'):
                 })
 
 
+    final_instruction = 'You are a friendly assistant who will help customer\'s and answer their question.'
+
+    
+    
+    # input_list += [{"role": "developer", "content": 'You are a friendly assistant who will help customer\'s and answer' \
+    #                'their question. Perform friendly conversation, but if they ask a question that would require '
+    #                'information from a bill, make sure that the bill has their name on it, and then answer with as '
+    #                'few words as possible. If it does not have their name, reply with the words "No bill found".'}]
     not_found_msg =  "Furthermore, if " + name + "does not show up in the bill' +\
           print out 'No bills found with that name'."
+    # response = client.responses.create(
+    #     model=model,
+    #     instructions=final_instruction,
+    #     tools=tools,
+    #     input=input_list,
+    # )
     response = client.responses.create(
         model=model,
-        instructions="Respond only with information gotten from the get_bills tool." + not_found_msg,
+        instructions= query,
         tools=tools,
         input=input_list,
     )
 
-    # print("Final input:")
-    # print(input_list)
-
-
-    # # 5. The model should be able to give a response!
-    # print("Final output:")
-    # print(response.model_dump_json(indent=2))
-    # print("\n" + response.output_text)
-
     return response.output_text
+
+
+
+if __name__ == '__main__':
+    test_dir = os.path.join(os.getcwd(), 'tests/billing_agent/')
+    test_questions_df = pd.read_csv(os.path.join(test_dir, 'questions.csv'))
+
+    answers_path = os.path.join(test_dir, 'answers.csv')
+    with open(answers_path, 'w') as f:
+        for i in range(len(test_questions_df)):
+            name = test_questions_df.loc[i]['Name']
+            question = test_questions_df.loc[i]['Question']
+            answer = '"' + ask_gpt(name,question).replace('\n', ' ').replace('"', "'") +'"'
+            content = ','.join([name,question,answer]) + '\n'
+            f.write(content)
+            
+
+
