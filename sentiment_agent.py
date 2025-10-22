@@ -1,4 +1,4 @@
-class SentimentAgent:
+class Sentiment_Agent:
     def __init__(self, model="gpt-3.5-turbo"):
         self.model = model
 
