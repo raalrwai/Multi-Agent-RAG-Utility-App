@@ -1,3 +1,4 @@
 class ExplanationAgent:
-    def explain(self, query):
-        return "Explanation agent not implemented yet."
+    def explain(self, contexts, original_query):
+        # Placeholder implementation
+        return "Explanation feature is under construction."
