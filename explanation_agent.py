@@ -44,7 +44,7 @@ def get_bills(name):
 
 
 
-func_dict = {'': }
+func_dict = {'temp': None}
 
 
 class Explanation_Agent():

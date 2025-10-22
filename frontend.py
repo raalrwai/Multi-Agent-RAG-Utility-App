@@ -17,8 +17,8 @@ import billing_agent_old as bl_agent
 
 from manager_agent import ManagerAgent
 from sentiment_agent import SentimentAgent
-from billing import Billing_Agent
-from explanation import Explanation_Agent
+from billing_agent import Billing_Agent
+from explanation_agent import Explanation_Agent
 
 load_dotenv()
 
@@ -31,7 +31,7 @@ index = pc.Index(PINECONE_INDEX_NAME)
 
 sentiment_agent = SentimentAgent()
 billing_agent = Billing_Agent()
-explanation_agent = ExplanationAgent()
+explanation_agent = Explanation_Agent()
 manager = ManagerAgent()
 
 def main():
