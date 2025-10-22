@@ -116,3 +116,12 @@ def get_response(system_prompt, user_prompt, model='gpt-5-chat-latest'):
            "content":user_prompt}])
   return response.output_text
 
+class RAGAgent:
+    def __init__(self):
+        pass
+
+    def retrieve(self, query):
+        return retrieve_bill_embeddings(query)
+
+    def generate_response(self, system_prompt, user_prompt):
+        return get_response(system_prompt, user_prompt)
