@@ -31,7 +31,7 @@ index = pc.Index(PINECONE_INDEX_NAME)
 sentiment_agent = SentimentAgent()
 rag_agent = RAGAgent()
 explanation_agent = ExplanationAgent()
-manager = ManagerAgent(sentiment_agent, rag_agent, explanation_agent)
+manager = ManagerAgent()
 
 def main():
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
@@ -72,7 +72,7 @@ def main():
         )
 
         with st.spinner("Searching for answers..."):
-            result = manager.handle(user_query=user_query, user_name=user_name, need_explanation=need_explanation)
+            result = manager.handle_query(user_query=user_query, user_name=user_name)
 
         if result:
             st.session_state.messages.append({"role": "assistant", "content": result["response"]})
