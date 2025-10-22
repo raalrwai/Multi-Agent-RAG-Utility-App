@@ -13,11 +13,12 @@ from openai import OpenAI
 from pinecone import Pinecone
 
 import rag
+import billing_agent_old as bl_agent
 
 from manager_agent import ManagerAgent
 from sentiment_agent import SentimentAgent
-from rag import RAGAgent
-from explanation_agent import ExplanationAgent
+from billing_agent import Billing_Agent
+from explanation_agent import Explanation_Agent
 
 load_dotenv()
 
@@ -29,8 +30,8 @@ pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
 
 sentiment_agent = SentimentAgent()
-rag_agent = RAGAgent()
-explanation_agent = ExplanationAgent()
+billing_agent = Billing_Agent()
+explanation_agent = Explanation_Agent()
 manager = ManagerAgent()
 
 def main():
