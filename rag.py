@@ -121,3 +121,12 @@ def history_to_file(history):
     # maybe, idk if we gonna use this yet
     return None
 
+class RAGAgent:
+    def __init__(self):
+        pass
+
+    def retrieve(self, query):
+        return retrieve_bill_embeddings(query)
+
+    def generate_response(self, system_prompt, user_prompt):
+        return get_response(system_prompt, user_prompt)
