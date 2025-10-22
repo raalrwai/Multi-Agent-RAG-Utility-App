@@ -65,6 +65,30 @@ def file_to_embed(file):
         with open(file_path, "wb") as f:
             f.write(file.getbuffer())
     
+        image = convert_from_path(file_path)
+        jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
+        image[0].save(jpeg_path, 'JPEG')
+
+        vector_id = hash_file(jpeg_path)
+
+        res = index.fetch(ids=[vector_id])
+        if vector_id in res.vectors:
+            st.warning(f"File already uploaded")
+
+        embed_result = vision_embed_file(jpeg_path)
+        record = {
+            'id': vector_id,
+            'values': embed_result['embedding'],
+            'metadata': {'caption': embed_result['image_caption']}
+        }
+    return record
+
+def file_to_embed(file):        
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        file_path = os.path.join(tmp_dir, "uploaded.pdf")
+        with open(file_path, "wb") as f:
+            f.write(file.getbuffer())
+    
         image = convert_from_path(file_path,poppler_path='poppler/Library/bin')
         jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
         image[0].save(jpeg_path, 'JPEG')
@@ -155,6 +179,21 @@ You are a knowledgeable assistant specialized in answering questions about elect
 You provide accurate and clear explanations based solely on the bill details and information provided above each question. 
 If the information is not sufficient to answer the question, respond truthfully with, "I don't know."
 """
+def ask_gpt_response(system_prompt, user_prompt, model='gpt-5-chat-latest'):
+  response = client.responses.create(
+      model=model,
+      input=[
+          {"role":"developer",
+          "content":system_prompt},
+          {"role":"user",
+           "content":user_prompt}])
+  return response.output_text
+
+primer = f"""
+You are a knowledgeable assistant specialized in answering questions about electric utility bills. 
+You provide accurate and clear explanations based solely on the bill details and information provided above each question. 
+If the information is not sufficient to answer the question, respond truthfully with, "I don't know."
+"""
 
 def main():
     st.title("Electricity Bills Visual QA")
@@ -173,11 +212,20 @@ def main():
         upsert_response = index.upsert([tuple(jpeg_record.values())])
 
     user_name = st.text_input("Full Name:")
+    
+    jpeg_upload = st.file_uploader("Upload PDF file", type='pdf')
+
+
+    if jpeg_upload:
+        jpeg_record = file_to_embed(jpeg_upload)
+        upsert_response = index.upsert([tuple(jpeg_record.values())])
+
+    user_name = st.text_input("Full Name:")
 
     user_query = st.text_input("Ask a question about your electricity bills:")
     if user_query:
         with st.spinner("Searching for answers..."):
-            response = ask_gpt_response(system_prompt=primer, user_prompt=augmented_query(user_query))
+            response = augmented_query(user_query)
             st.markdown("Results")
             st.write(response)
 
