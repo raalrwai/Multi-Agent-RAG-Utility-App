@@ -12,10 +12,12 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pinecone import Pinecone
 
-
 import rag
-import billing_agent as bl_agent
 
+from manager_agent import ManagerAgent
+from sentiment_agent import SentimentAgent
+from rag import RAGAgent
+from explanation_agent import ExplanationAgent
 
 load_dotenv()
 
@@ -25,6 +27,11 @@ PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
+
+sentiment_agent = SentimentAgent()
+rag_agent = RAGAgent()
+explanation_agent = ExplanationAgent()
+manager = ManagerAgent(sentiment_agent, rag_agent, explanation_agent)
 
 def main():
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
@@ -49,25 +56,32 @@ def main():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Display chat history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.write(message["content"])
 
-    # Chat input for new user query
     user_query = st.chat_input("Ask a question about your electricity bills:")
 
     if user_query and user_query.strip():
-        # Add user message to history
         st.session_state.messages.append({"role": "user", "content": user_query})
         with st.chat_message("user"):
             st.write(user_query)
+
+        need_explanation = any(
+            kw in user_query.lower() for kw in ["why", "how", "explain", "break down", "details", "clarify"]
+        )
+
         with st.spinner("Searching for answers..."):
-            response = bl_agent.ask_gpt(user_name, user_query)
-        if response:
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            result = manager.handle(user_query=user_query, user_name=user_name, need_explanation=need_explanation)
+
+        if result:
+            st.session_state.messages.append({"role": "assistant", "content": result["response"]})
             with st.chat_message("assistant"):
-                st.write(response)
+                st.write(result["response"])
+                if result.get("explanation"):
+                    with st.expander("Explanation", expanded=False):
+                        st.write(result["explanation"])
+                st.caption(f"Sentiment: {result['sentiment']}")
 
 if __name__ == "__main__":
     main()
