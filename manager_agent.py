@@ -1,6 +1,6 @@
-from rag import RAGAgent
-from sentiment_agent import SentimentAgent
-from explanation_agent import ExplanationAgent
+from billing_agent import Billing_Agent
+from sentiment_agent import Sentiment_Agent
+from explanation_agent import Explanation_Agent
 from openai import OpenAI  # or whichever client you use
 import os
 from dotenv import load_dotenv
@@ -10,11 +10,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-class ManagerAgent:
+class Manager_Agent:
     def __init__(self):
-        self.sentiment_agent = SentimentAgent()
-        self.rag_agent = RAGAgent()
-        self.explanation_agent = ExplanationAgent()
+        self.sentiment_agent = Sentiment_Agent()
+        self.billing_agent = Billing_Agent()
+        self.explanation_agent = Explanation_Agent()
 
     def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
         response = client.chat.completions.create(
@@ -57,7 +57,7 @@ class ManagerAgent:
         if "sentiment" in orchestration_plan.lower():
             sentiment = self.sentiment_agent.analyze(user_query)
         if "rag" in orchestration_plan.lower() or "retrieve" in orchestration_plan.lower():
-            contexts = self.rag_agent.retrieve(user_query)
+            contexts = self.billing_agent.make_request(user_query)
             system_prompt_answer = (
                 "You are a helpful assistant that answers questions about electricity bills using relevant data."
             )
@@ -65,12 +65,12 @@ class ManagerAgent:
                 system_prompt_answer += " The user seems upset. Respond with empathy and helpfulness."
 
             user_prompt_answer = f"User query: {user_query}\n\nRelevant info:\n" + "\n".join(contexts)
-            response = self.rag_agent.generate_response(system_prompt_answer, user_prompt_answer)
+            response = self.billing_agent.make_request(system_prompt_answer, user_prompt_answer)
 
         # Determine if explanation is needed (or based on orchestration plan)
         if any(word in user_query.lower() for word in ["explain", "break down", "why", "how"]) or "explanation" in orchestration_plan.lower():
             if contexts:
-                explanation = self.explanation_agent.explain(contexts, user_query)
+                explanation = self.explanation_agent.make_request(contexts, user_query)
 
         return {
             "response": response,

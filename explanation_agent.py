@@ -24,8 +24,8 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 tools = [
     {
         "type": "function",
-        "name": "get_bills",
-        "description": "Retrieve bills from a database for a given person.",
+        "name": "temp_func",
+        "description": "I dont know",
         "parameters": {
             "type": "object",
             "properties": {
