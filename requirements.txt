@@ -4,7 +4,6 @@ opencv-python
 pdf2image
 openai
 pinecone
-python-dotenvpandas
-numpy
-matplotylib.pyplot
-tensorflow
+python-dotenv
+streamlit
+pymupdf
