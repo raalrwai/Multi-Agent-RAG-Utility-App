@@ -1,117 +1,81 @@
-from billing_agent import Billing_Agent
-from sentiment_agent import Sentiment_Agent
-from explanation_agent import Explanation_Agent
-from openai import OpenAI  # or whichever client you use
 import os
-from dotenv import load_dotenv
+import asyncio
+from agents import Agent, function_tool, Runner, SQLiteSession
+from rag import RAGAgent
+from sentiment_agent import SentimentTool as LangChainSentimentTool
+from explanation_agent import explain_bills  
 
-load_dotenv()
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=OPENAI_API_KEY)
+rag_agent = RAGAgent()
+sentiment_tool = LangChainSentimentTool  
 
+@function_tool
+def rag_retrieve(query: str):
+    """Retrieve relevant contexts for a user query."""
+    return rag_agent.retrieve(query)
 
-class Manager_Agent:
-    def __init__(self):
-        self.sentiment_agent = Sentiment_Agent()
-        self.billing_agent = Billing_Agent()
-        self.explanation_agent = Explanation_Agent()
+@function_tool
+def rag_generate(system_prompt: str, user_prompt: str):
+    """Generate response using RAG with system/user prompts."""
+    return rag_agent.generate_response(system_prompt, user_prompt)
 
-    def _call_llm(self, system_prompt: str, user_prompt: str) -> str:
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ]
-        )
-        return response.choices[0].message.content.strip()
+explain = explain_bills  
 
-    def handle_query(self, user_query: str, user_name: str = None, document_uploaded: bool = False) -> dict:
-        # Primer for LLM to decide which sub-agents to call
-        system_prompt = (
-            "You are a manager agent responsible for deciding which of the following agents to call "
-            "based on the user's query and whether a document is available:\n"
-            "- SentimentAgent: analyzes user sentiment\n"
-            "- RAGAgent: retrieves and generates answers based on documents\n"
-            "- ExplanationAgent: explains retrieved contexts when needed\n\n"
-            "Based on the input, decide which agents to call and provide a structured plan."
-        )
+manager_agent = Agent(
+    name="ManagerAgent",
+    instructions="You are a manager agent that decides which tools to call internally based on user input and context.",
+    model="gpt-5-nano",
+    tools=[rag_retrieve, rag_generate, explain],
+)
 
-        # Combine all info frontend has given
-        user_prompt = (
-            f"User query: {user_query}\n"
-            f"User name: {user_name}\n"
-            f"Document uploaded: {document_uploaded}\n"
-            "Please respond with which agents to call and any special instructions."
-        )
-
-        # Ask LLM for orchestration instructions
-        orchestration_plan = self._call_llm(system_prompt, user_prompt)
-
-        # For now, naive parsing: just check keywords in orchestration_plan
-        sentiment = None
-        contexts = []
-        explanation = None
-        response = ""
-
-        if "sentiment" in orchestration_plan.lower():
-            sentiment = self.sentiment_agent.analyze(user_query)
-        if "rag" in orchestration_plan.lower() or "retrieve" in orchestration_plan.lower():
-            contexts = self.billing_agent.make_request(user_query)
-            system_prompt_answer = (
-                "You are a helpful assistant that answers questions about electricity bills using relevant data."
-            )
-            if sentiment == "negative":
-                system_prompt_answer += " The user seems upset. Respond with empathy and helpfulness."
-
-            user_prompt_answer = f"User query: {user_query}\n\nRelevant info:\n" + "\n".join(contexts)
-            response = self.billing_agent.make_request(system_prompt_answer, user_prompt_answer)
-
-        # Determine if explanation is needed (or based on orchestration plan)
-        if any(word in user_query.lower() for word in ["explain", "break down", "why", "how"]) or "explanation" in orchestration_plan.lower():
-            if contexts:
-                explanation = self.explanation_agent.make_request(contexts, user_query)
-
-        return {
-            "response": response,
-            "sentiment": sentiment,
-            "explanation": explanation,
-            "orchestration_plan": orchestration_plan,  # For debug/inspection
-        }
-
-# # manager_agent.py
-
-# from rag import RAGAgent
-# from sentiment_agent import SentimentAgent
-# from explanation_agent import ExplanationAgent
+manager_session = SQLiteSession("manager_session")
 
 
-# class ManagerAgent:
-#     def __init__(self):
-#         self.sentiment_agent = SentimentAgent()
-#         self.rag_agent = RAGAgent()
-#         self.explanation_agent = ExplanationAgent()
+def safe_run_sync(tool, query):
+    """Run Runner.run_sync() in its own event loop (for Streamlit safety)."""
+    import asyncio
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = Runner.run_sync(tool, query)
+        loop.close()
+        return result
+    except Exception as e:
+        print(f"[safe_run_sync error] {e}")
+        return None
 
-#     def handle_query(self, user_query: str, user_name: str = None) -> dict:
-#         sentiment = self.sentiment_agent.analyze(user_query)
 
-#         contexts = self.rag_agent.retrieve(user_query)
+def run_manager_query(user_query: str, user_name: str = None, document_uploaded: bool = False) -> dict:
+    """Handles sentiment + RAG retrieval/generation + explanation."""
 
-#         system_prompt = "You are a helpful assistant that answers questions about electricity bills using relevant data."
-#         if sentiment == "negative":
-#             system_prompt += " The user seems upset. Respond with empathy and helpfulness."
+    sentiment_result = asyncio.run(asyncio.to_thread(safe_run_sync, sentiment_tool, user_query))
 
-#         user_prompt = f"User query: {user_query}\n\nRelevant info:\n" + "\n".join(contexts)
-#         response = self.rag_agent.generate_response(system_prompt, user_prompt)
+    sentiment_data = sentiment_result.final_output if sentiment_result else {}
+    sentiment = sentiment_data.get("sentiment")
 
-#         needs_explanation = any(word in user_query.lower() for word in ["explain", "break down", "why", "how"])
-#         explanation = None
-#         if needs_explanation:
-#             explanation = self.explanation_agent.explain(contexts, user_query)
+    contexts = []
+    response = ""
 
-#         return {
-#             "response": response,
-#             "sentiment": sentiment,
-#             "explanation": explanation
-#         }
+    if document_uploaded or "rag" in user_query.lower():
+        contexts = rag_retrieve.fn(user_query)
+        system_prompt_answer = "You are a helpful assistant for electricity bills."
 
+        if sentiment in ["Unsatisfied", "negative"]:
+            system_prompt_answer += " Respond with empathy and helpfulness."
+
+        user_prompt_answer = f"User query: {user_query}\n\nRelevant info:\n" + "\n".join(contexts)
+        response = rag_generate.fn(system_prompt_answer, user_prompt_answer)
+
+    explanation_result = None
+    if any(word in user_query.lower() for word in ["explain", "why", "how", "break down"]) and contexts:
+        explanation_result = explain.fn(contexts, user_query)
+
+    return {
+        "response": response,
+        "explanation": explanation_result,
+        "orchestration_plan": user_query.lower(),
+    }
+
+
+if __name__ == "__main__":
+    result = Runner.run_sync(manager_agent, "Why is my electricity bill so high?", session=manager_session)
+    print(result.final_output)
