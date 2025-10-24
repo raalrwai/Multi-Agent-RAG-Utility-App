@@ -1,14 +1,15 @@
 import os
+
+import numpy as np
+import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from openai import OpenAI
+from pinecone import Pinecone
 
 import rag
-import billing_agent_old as bl_agent
 
 from manager_agent import Manager_Agent
-from sentiment_agent import Sentiment_Agent
-from billing_agent import Billing_Agent
-from explanation_agent import Explanation_Agent
 
 load_dotenv()
 
@@ -19,10 +20,8 @@ PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
 
-sentiment_agent = Sentiment_Agent()
-billing_agent = Billing_Agent()
-explanation_agent = Explanation_Agent()
 manager = Manager_Agent()
+
 
 def main():
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
