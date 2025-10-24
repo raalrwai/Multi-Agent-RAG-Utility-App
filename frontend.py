@@ -49,6 +49,7 @@ def main():
     """)
 
     jpeg_upload = st.file_uploader("Upload PDF file", type='pdf')
+    print(type(jpeg_upload))
     if jpeg_upload:
         rag.file_to_upsert(jpeg_upload)
 

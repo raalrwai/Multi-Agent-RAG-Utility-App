@@ -21,7 +21,8 @@ class Manager_Agent:
         self.manager_agent = Agent(
             name="Manager agent",
             instructions=(
-                "Handle all direct user communication."
+                "Handle all direct user communication. The goal is to help customers figure out their electricity bill" \
+                "information and answer any questions they may have."
                 "Call the relevant tools when specialized expertise is needed."
             ),  
             tools=[

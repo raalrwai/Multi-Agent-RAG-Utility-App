@@ -9,6 +9,7 @@ from agents import Agent, Runner, function_tool, FunctionTool
 
 import rag
 import asyncio
+import streamlit
 
 load_dotenv()
 
@@ -51,23 +52,22 @@ tools = [
 ]
 
 @function_tool
-def get_bills(name):
+def get_bills(name: str):
     """ Retrieves bills with the given name from a databse
     Args: 
         name: A string containing the name to be searched for
     """
-    # print('NAME: ', name)
-    # print(name['name'])
-    return rag.retrieve_bill_embeddings(name['name'])
+    print('NAME: ', name)
+    return rag.retrieve_bill_embeddings(name)
 
-@function_tool
-def upload_bills(bill):
-    """ Uploads bills to the database
+# @function_tool
+# def upload_bills(bill: streamlit.runtime.uploaded_file_manager.UploadedFile):
+#     """ Uploads bills to the database
     
-    Args: 
-        bill: a pdf file that is to be uploaded to the database
-    """
-    return rag.file_to_upsert(bill)
+#     Args: 
+#         bill: a pdf file that is to be uploaded to the database
+#     """
+#     return rag.file_to_upsert(bill)
 
 # # To be Made
 # def upload_history(history):
@@ -75,9 +75,9 @@ def upload_bills(bill):
 
 
 
-func_dict = {'get_bills': get_bills, 
-             'upload_bill': upload_bills,
-             }
+# func_dict = {'get_bills': get_bills, 
+#              'upload_bill': upload_bills,
+#              }
 
 def get_agent():
     billing_agent = Agent(
@@ -87,7 +87,7 @@ def get_agent():
             "Call the relevant tools when needed."
         ),
         handoff_description="Specialist agent for retrieving and uploading bills.",
-        tools=[get_bills, upload_bills]
+        tools=[get_bills]
     )
     return billing_agent
 
@@ -95,15 +95,15 @@ async def get_info(name, question):
     query = 'Using the bill belonging to "' + name + '", answer the following question: ' + question
     
     result = await Runner.run(get_agent(), query)
-    return result
+    return result.final_output
 
 if __name__ == '__main__':
-    for tool in get_agent().tools:
-        if isinstance(tool, FunctionTool):
-            print(tool.name)
-            print(tool.description)
-            print(json.dumps(tool.params_json_schema, indent=2))
-            print()
+    # for tool in get_agent().tools:
+    #     if isinstance(tool, FunctionTool):
+    #         print(tool.name)
+    #         print(tool.description)
+    #         print(json.dumps(tool.params_json_schema, indent=2))
+    #         print()
 
     test_dir = os.path.join(os.getcwd(), 'tests/billing_agent/')
     test_questions_df = pd.read_csv(os.path.join(test_dir, 'questions.csv'))
@@ -117,7 +117,6 @@ if __name__ == '__main__':
             answer = '"' + response.replace('\n', ' ').replace('"', "'") +'"'
             content = ','.join([name,question,answer]) + '\n'
             f.write(content)
-            break
 
 # class Billing_Agent():
 #     def __init__(self):

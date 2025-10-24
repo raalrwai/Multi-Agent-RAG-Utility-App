@@ -20,7 +20,7 @@ def get_agent():
     sentiment_agent = Agent(
         name="Sentiment agent",
         instructions=(
-            "In charge of judging a query's emotional sentiment in terms of positive or negative."
+            "You are in charge of judging a query's emotional sentiment in terms of positive or negative."
         ),
         handoff_description="Judges the sentiment value of a query."
     )
