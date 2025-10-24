@@ -17,39 +17,6 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-tools = [
-    {
-        "type": "function",
-        "name": "get_bills",
-        "description": "Retrieve bills from a database for a given person.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "name": {
-                    "type": "string",
-                    "description": "Name that appears on the bills",
-                },
-            },
-            "required": ["name"],
-        },
-    },   
-    {
-        "type": "function",
-        "name": "upload_bill",
-        "description": "Upload a given bill to the database",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "bill": {
-                    "type": "string",
-                    "description": "The bill to be uploaded",
-                },
-            
-            },
-            "required": ["bill"],
-        },
-    },    
-]
 
 @function_tool
 def get_bills(name: str):
@@ -69,15 +36,6 @@ def get_bills(name: str):
 #     """
 #     return rag.file_to_upsert(bill)
 
-# # To be Made
-# def upload_history(history):
-#     return rag.history_to_upsert(history)
-
-
-
-# func_dict = {'get_bills': get_bills, 
-#              'upload_bill': upload_bills,
-#              }
 
 def get_agent():
     billing_agent = Agent(
