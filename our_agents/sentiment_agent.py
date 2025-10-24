@@ -8,6 +8,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 def analyze_sentiment_and_intent(text: str) -> dict:
+    print("[sentiment check]")
     
     prompt = (
         f"Analyze the following customer query. "
@@ -20,6 +21,9 @@ def analyze_sentiment_and_intent(text: str) -> dict:
         temperature=0,
     )
     content = response.choices[0].message.content.strip()
+    
+
+    print('[sentiment] ', json.loads(content), end='\n\n')
     try:
         result = json.loads(content)
         if "sentiment" in result and "intent" in result:

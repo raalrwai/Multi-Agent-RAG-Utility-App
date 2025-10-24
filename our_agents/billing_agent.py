@@ -23,7 +23,7 @@ def get_bills(name: str):
     Args: 
         name: A string containing the name to be searched for
     """
-    print('NAME: ', name)
+    # print('NAME: ', name)
     return rag.retrieve_bill_embeddings(name)
 
 # @function_tool
@@ -51,7 +51,8 @@ def get_agent():
 async def get_info(name, question):
     query = 'Using the bill belonging to "' + name + '", answer the following question: ' + question
     
-    result = await Runner.run(get_agent(), query)
+    result = await Runner.run(get_agent(), query)    
+    print('[billing] ', result.final_output, end='\n\n')
     return result.final_output
 
 if __name__ == '__main__':

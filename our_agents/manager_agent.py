@@ -44,7 +44,8 @@ class Manager_Agent:
         )
 
     async def run(self, query):
-        result = await Runner.run(self.manager_agent, query)
+        result = await Runner.run(self.manager_agent, query)     
+        print('[manager] ', result.final_output, end='\n\n')
         return result.final_output
 
     def handle_query(self, user_query: str, user_name: str = None, has_bill: bool = False) -> dict:

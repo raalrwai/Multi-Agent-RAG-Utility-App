@@ -1,11 +1,12 @@
 import os
 import sys
-sys.path.insert(1, '/agents/')
+
 import streamlit as st
 from dotenv import load_dotenv
 from pinecone import Pinecone
 
-import utility_functions.rag
+import utility_functions.rag as rag
+import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 
 load_dotenv()
@@ -19,8 +20,10 @@ index = pc.Index(PINECONE_INDEX_NAME)
 
 manager = Manager_Agent()
 
-
-def main():
+# saved_stdout = sys.stdout
+saved_stdout = log_gen.start_log()
+def main(): 
+  
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
 
     with st.sidebar:
@@ -56,6 +59,7 @@ def main():
 
     if user_query and user_query.strip():
         st.session_state.messages.append({"role": "user", "content": user_query})
+        print(f'[{user_name}] ', user_query)
 
         with st.spinner("Thinking..."):
             result = manager.handle_query(
