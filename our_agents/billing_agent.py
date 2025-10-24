@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from agents import Agent, Runner, function_tool, FunctionTool
 
-import rag
+import utility_functions.rag as rag
 import asyncio
 import streamlit
 

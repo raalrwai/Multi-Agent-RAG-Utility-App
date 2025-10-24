@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-from agents import Agent, function_tool, Runner, SQLiteSession
+from our_agents import Agent, function_tool, Runner, SQLiteSession
 from dotenv import load_dotenv
 
 load_dotenv()

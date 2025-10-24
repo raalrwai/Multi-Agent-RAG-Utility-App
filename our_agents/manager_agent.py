@@ -4,9 +4,9 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from agents import Agent, Runner
 
-import billing_agent
-import sentiment_agent
-import explanation_agent  
+import our_agents.billing_agent as billing_agent
+import our_agents.sentiment_agent as sentiment_agent
+import our_agents.explanation_agent as explanation_agent
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")

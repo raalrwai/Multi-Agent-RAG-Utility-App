@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from agents import Agent, Runner, function_tool
 
-import rag  
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
