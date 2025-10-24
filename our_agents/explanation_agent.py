@@ -64,6 +64,7 @@ async def get_explanation(name: str, question: str):
     """
     query = f'For the customer "{name}", explain the following question: {question}'
     result = await Runner.run(get_agent(), query)
+    print('[explanation] ', result.final_output, end='\n\n')
     return result.final_output
 
 
