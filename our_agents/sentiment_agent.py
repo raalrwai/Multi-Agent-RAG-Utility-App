@@ -1,28 +1,76 @@
-import os
-
-import pandas as pd
 import json
-
-from dotenv import load_dotenv
+import os
 from openai import OpenAI
-from agents import Agent
-
-load_dotenv()
+from agents import Agent  # type: ignore
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 client = OpenAI(api_key=OPENAI_API_KEY)
 
 
+def analyze_sentiment_and_intent(text: str) -> dict:
+    
+    prompt = (
+        f"Analyze the following customer query. "
+        f"Respond with the sentiment (positive, negative, neutral) and the main intent (what the customer is trying to achieve) "
+        f"in JSON format.\n\nQuery: {text}\n\nFormat:\n{{\"sentiment\": \"sentiment_value\", \"intent\": \"customer_intent\"}}"
+    )
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+    content = response.choices[0].message.content.strip()
+    try:
+        result = json.loads(content)
+        if "sentiment" in result and "intent" in result:
+            return result
+        else:
+            return {"sentiment": "neutral", "intent": "unknown"}
+    except Exception:
+        return {"sentiment": "neutral", "intent": "unknown"}
+
 
 def get_agent():
+    def sentiment_intent_tool(query: str) -> str:
+        result = analyze_sentiment_and_intent(query)
+        return json.dumps(result)
+
     sentiment_agent = Agent(
-        name="Sentiment agent",
-        instructions=(
-            "You are in charge of judging a query's emotional sentiment in terms of positive or negative."
-        ),
-        handoff_description="Judges the sentiment value of a query."
+        name="Sentiment and Intent Agent",
+        instructions="Judge customer's query's sentiment and intent.",
+        tools=[sentiment_intent_tool],
+        handoff_description="Handles sentiment and intent understanding of queries."
     )
     return sentiment_agent
+
+
+# import os
+
+# import pandas as pd
+# import json
+
+# from dotenv import load_dotenv
+# from openai import OpenAI
+# from agents import Agent # type: ignore
+# import rag
+
+# load_dotenv()
+
+# OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# client = OpenAI(api_key=OPENAI_API_KEY)
+
+
+
+# def get_agent():
+#     sentiment_agent = Agent(
+#         name="Sentiment agent",
+#         instructions=(
+#             "You are in charge of judging a query's emotional sentiment in terms of positive or negative."
+#         ),
+#         handoff_description="Judges the sentiment value of a query."
+#     )
+#     return sentiment_agent
+
 
 # import json
 # from openai import OpenAI
