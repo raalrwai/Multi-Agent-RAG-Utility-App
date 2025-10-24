@@ -1,10 +1,12 @@
 import os
+import sys
+sys.path.insert(1, '/agents/')
 import streamlit as st
 from dotenv import load_dotenv
 from pinecone import Pinecone
 
-import rag
-from manager_agent import Manager_Agent
+import utility_functions.rag
+from our_agents.manager_agent import Manager_Agent
 
 load_dotenv()
 
