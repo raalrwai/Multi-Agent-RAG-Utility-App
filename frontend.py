@@ -22,23 +22,28 @@ index = pc.Index(PINECONE_INDEX_NAME)
 
 manager = Manager_Agent()
 
+
 def main():
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
     st.title("Electricity Bills Visual QA")
 
     st.sidebar.title("Navigation")
-    st.sidebar.info("Use this app to upload your electricity bill PDF and ask questions about it.")
+    st.sidebar.info("Upload your electricity bill PDF and ask questions in natural language.")
     st.sidebar.markdown("**Example questions:**")
-    st.sidebar.markdown("- What was my total bill in July?\n- Why is my bill amount so high? \n- What is the due date for my latest bill?")
+    st.sidebar.markdown(
+        "- What was my total bill in July?\n"
+        "- Why is my bill amount so high?\n"
+        "- What is the due date for my latest bill?"
+    )
 
     st.markdown("""
-    Upload a PDF file containing your electricity bill.
-    This app will process and embed them visually and semantically, then let you query your bills with natural language.
+    Upload a PDF file containing your electricity bill. 
+    This app will process and embed it visually and semantically, then let you query your bills naturally.
     """)
 
-    jpeg_upload = st.file_uploader("Upload PDF file", type='pdf')
-    if jpeg_upload:
-        rag.file_to_upsert(jpeg_upload)
+    pdf_upload = st.file_uploader("Upload PDF file", type='pdf')
+    if pdf_upload:
+        rag.file_to_upsert(pdf_upload)
 
     user_name = st.text_input("Full Name:")
 
@@ -70,7 +75,7 @@ def main():
                 if result.get("explanation"):
                     with st.expander("Explanation", expanded=False):
                         st.write(result["explanation"])
-                st.caption(f"Sentiment: {result['sentiment']}")
 
 if __name__ == "__main__":
     main()
+
