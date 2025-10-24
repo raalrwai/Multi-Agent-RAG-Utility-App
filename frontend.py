@@ -61,12 +61,12 @@ def main():
         # with st.chat_message("user"):
         #     st.write(user_query)
 
+        need_explanation = any(
+            kw in user_query.lower() for kw in ["why", "how", "explain", "break down", "details", "clarify"]
+        )
+
         with st.spinner("Searching for answers..."):
-            result = run_manager_query(
-                user_query=user_query,
-                user_name=user_name,
-                document_uploaded=bool(pdf_upload)
-            )
+            result = manager.handle_query(user_query=user_query, user_name=user_name)
 
         if result:
             # st.session_state.messages.append({"role": "assistant", "content": result["response"]})
