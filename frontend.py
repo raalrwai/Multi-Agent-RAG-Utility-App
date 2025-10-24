@@ -1,11 +1,27 @@
 import os
+
+import numpy as np
+import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
+from openai import OpenAI
+from pinecone import Pinecone
 
 import rag
-from manager_agent import run_manager_query  
+
+from manager_agent import Manager_Agent
 
 load_dotenv()
+
+PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
+PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT')
+PINECONE_INDEX_NAME = "retrieval-augmented-generation"
+
+pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
+index = pc.Index(PINECONE_INDEX_NAME)
+
+manager = Manager_Agent()
+
 
 def main():
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
@@ -41,9 +57,9 @@ def main():
     user_query = st.chat_input("Ask a question about your electricity bills:")
 
     if user_query and user_query.strip():
-        st.session_state.messages.append({"role": "user", "content": user_query})
-        with st.chat_message("user"):
-            st.write(user_query)
+        # st.session_state.messages.append({"role": "user", "content": user_query})
+        # with st.chat_message("user"):
+        #     st.write(user_query)
 
         with st.spinner("Searching for answers..."):
             result = run_manager_query(
@@ -53,7 +69,7 @@ def main():
             )
 
         if result:
-            st.session_state.messages.append({"role": "assistant", "content": result["response"]})
+            # st.session_state.messages.append({"role": "assistant", "content": result["response"]})
             with st.chat_message("assistant"):
                 st.write(result["response"])
                 if result.get("explanation"):

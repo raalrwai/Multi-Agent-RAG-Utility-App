@@ -1,81 +1,56 @@
+
+import billing_agent
+import sentiment_agent
+# import explanation_agent
+
+from openai import OpenAI  # or whichever client you use
 import os
+from dotenv import load_dotenv
+from agents import Agent, Runner
 import asyncio
-from agents import Agent, function_tool, Runner, SQLiteSession
-from rag import RAGAgent
-from sentiment_agent import SentimentTool as LangChainSentimentTool
-from explanation_agent import explain_bills  
 
-rag_agent = RAGAgent()
-sentiment_tool = LangChainSentimentTool  
-
-@function_tool
-def rag_retrieve(query: str):
-    """Retrieve relevant contexts for a user query."""
-    return rag_agent.retrieve(query)
-
-@function_tool
-def rag_generate(system_prompt: str, user_prompt: str):
-    """Generate response using RAG with system/user prompts."""
-    return rag_agent.generate_response(system_prompt, user_prompt)
-
-explain = explain_bills  
-
-manager_agent = Agent(
-    name="ManagerAgent",
-    instructions="You are a manager agent that decides which tools to call internally based on user input and context.",
-    model="gpt-5-nano",
-    tools=[rag_retrieve, rag_generate, explain],
-)
-
-manager_session = SQLiteSession("manager_session")
+load_dotenv()
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 
-def safe_run_sync(tool, query):
-    """Run Runner.run_sync() in its own event loop (for Streamlit safety)."""
-    import asyncio
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        result = Runner.run_sync(tool, query)
-        loop.close()
+
+class Manager_Agent:
+    def __init__(self):
+        self.manager_agent = Agent(
+            name="Manager agent",
+            instructions=(
+                "Handle all direct user communication. The goal is to help customers figure out their electricity bill" \
+                "information and answer any questions they may have."
+                "Call the relevant tools when specialized expertise is needed."
+            ),  
+            tools=[
+                billing_agent.get_agent().as_tool(
+                    tool_name="billing_expert",
+                    tool_description="Handles bill retrieval and upload.",
+                ),
+                sentiment_agent.get_agent().as_tool(
+                    tool_name="sentiment_expert",
+                    tool_description="Handles judging question sentiment.",
+                )
+            ],
+        )
+      
+            # handoffs = [billing_agent.get_agent(),
+            #             sentiment_agent.get_agent()
+            # ],
+    async def run(self, query):    
+        result = await Runner.run(self.manager_agent, query)
+        # print(result.final_output)
+        return result.final_output
+
+
+    def handle_query(self, user_query: str, user_name: str = None) -> dict:
+        full_query = user_name + ': ' + user_query
+        result = {}
+        result['response'] = asyncio.run(self.run(full_query))
+        result['explanation'] = result['response']
+        result['sentiment'] = result['response']
         return result
-    except Exception as e:
-        print(f"[safe_run_sync error] {e}")
-        return None
 
 
-def run_manager_query(user_query: str, user_name: str = None, document_uploaded: bool = False) -> dict:
-    """Handles sentiment + RAG retrieval/generation + explanation."""
-
-    sentiment_result = asyncio.run(asyncio.to_thread(safe_run_sync, sentiment_tool, user_query))
-
-    sentiment_data = sentiment_result.final_output if sentiment_result else {}
-    sentiment = sentiment_data.get("sentiment")
-
-    contexts = []
-    response = ""
-
-    if document_uploaded or "rag" in user_query.lower():
-        contexts = rag_retrieve.fn(user_query)
-        system_prompt_answer = "You are a helpful assistant for electricity bills."
-
-        if sentiment in ["Unsatisfied", "negative"]:
-            system_prompt_answer += " Respond with empathy and helpfulness."
-
-        user_prompt_answer = f"User query: {user_query}\n\nRelevant info:\n" + "\n".join(contexts)
-        response = rag_generate.fn(system_prompt_answer, user_prompt_answer)
-
-    explanation_result = None
-    if any(word in user_query.lower() for word in ["explain", "why", "how", "break down"]) and contexts:
-        explanation_result = explain.fn(contexts, user_query)
-
-    return {
-        "response": response,
-        "explanation": explanation_result,
-        "orchestration_plan": user_query.lower(),
-    }
-
-
-if __name__ == "__main__":
-    result = Runner.run_sync(manager_agent, "Why is my electricity bill so high?", session=manager_session)
-    print(result.final_output)
