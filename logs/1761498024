@@ -1,0 +1,46 @@
+[]  H
+[31m──[0m[31m────────────────────────[0m[31m [0m[1;31mTraceback [0m[1;2;31m(most recent call last)[0m[31m [0m[31m─────────────────────────[0m[31m──[0m
+[31m [0m C:\Users\Premnand                                                                    [31m [0m
+[31m [0m Dareddy\AppData\Local\Programs\Python\Python310\lib\site-packages\streamlit\runtime\ [31m [0m
+[31m [0m scriptrunner\exec_code.py:128 in exec_func_with_error_handling                       [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m C:\Users\Premnand                                                                    [31m [0m
+[31m [0m Dareddy\AppData\Local\Programs\Python\Python310\lib\site-packages\streamlit\runtime\ [31m [0m
+[31m [0m scriptrunner\script_runner.py:669 in code_to_exec                                    [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m C:\Users\Premnand                                                                    [31m [0m
+[31m [0m Dareddy\Retrieval-Augmented-Generation-for-Electricity-Utility-Bills\frontend.py:82  [31m [0m
+[31m [0m in <module>                                                                          [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m79 [0m                                                                                [31m [0m
+[31m [0m   [2m80 [0m                                                                                [31m [0m
+[31m [0m   [2m81 [0m[94mif[0m [91m__name__[0m == [33m"[0m[33m__main__[0m[33m"[0m:                                                      [31m [0m
+[31m [0m [31m❱ [0m82 [2m│   [0mmain()                                                                      [31m [0m
+[31m [0m   [2m83 [0m                                                                                [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m C:\Users\Premnand                                                                    [31m [0m
+[31m [0m Dareddy\Retrieval-Augmented-Generation-for-Electricity-Utility-Bills\frontend.py:65  [31m [0m
+[31m [0m in main                                                                              [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m62 [0m[2m│   │   [0m[96mprint[0m([33mf[0m[33m'[0m[33m[[0m[33m{[0muser_name[33m}[0m[33m] [0m[33m'[0m, user_query)                                    [31m [0m
+[31m [0m   [2m63 [0m[2m│   │   [0m                                                                        [31m [0m
+[31m [0m   [2m64 [0m[2m│   │   [0m[94mwith[0m st.spinner([33m"[0m[33mThinking...[0m[33m"[0m):                                         [31m [0m
+[31m [0m [31m❱ [0m65 [2m│   │   │   [0mresult = manager.handle_query(                                      [31m [0m
+[31m [0m   [2m66 [0m[2m│   │   │   │   [0muser_query=user_query,                                          [31m [0m
+[31m [0m   [2m67 [0m[2m│   │   │   │   [0muser_name=user_name,                                            [31m [0m
+[31m [0m   [2m68 [0m[2m│   │   │   │   [0mhas_bill=has_bill                                               [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m C:\Users\Premnand                                                                    [31m [0m
+[31m [0m Dareddy\Retrieval-Augmented-Generation-for-Electricity-Utility-Bills\our_agents\mana [31m [0m
+[31m [0m ger_agent.py:99 in handle_query                                                      [31m [0m
+[31m [0m                                                                                      [31m [0m
+[31m [0m   [2m 96 [0m[2m│   │   [0m[2m# Always analyze sentiment regardless of query type[0m                    [31m [0m
+[31m [0m   [2m 97 [0m[2m│   │   [0msentiment_result = sentiment_agent.analyze_sentiment_and_intent(user_q [31m [0m
+[31m [0m   [2m 98 [0m[2m│   │   [0m[2m#sentiment_result = asyncio.run(sentiment_agent.analyze_sentiment_and_[0m [31m [0m
+[31m [0m [31m❱ [0m 99 [2m│   │   [0msentiment = sentiment_result.get([33m"[0m[33msentiment[0m[33m"[0m, [33m"[0m[33mneutral[0m[33m"[0m)               [31m [0m
+[31m [0m   [2m100 [0m[2m│   │   [0mintent = sentiment_result.get([33m"[0m[33mintent[0m[33m"[0m, [33m"[0m[33munknown[0m[33m"[0m)                     [31m [0m
+[31m [0m   [2m101 [0m[2m│   │   [0m[96mprint[0m([33mf[0m[33m'[0m[33m[Sentiment Agent] Sentiment: [0m[33m{[0msentiment[33m}[0m[33m, Intent: [0m[33m{[0mintent[33m}[0m[33m'[0m)   [31m [0m
+[31m [0m   [2m102 [0m                                                                               [31m [0m
+[31m────────────────────────────────────────────────────────────────────────────────────────[0m
+[1;91mAttributeError: [0m[32m'coroutine'[0m object has no attribute [32m'get'[0m
+  Stopping...
