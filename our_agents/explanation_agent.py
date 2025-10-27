@@ -33,7 +33,7 @@ def explain_bill_details(name: str, question: str, relevant_contexts: list[str] 
         prompt += "\nRelevant context:\n" + "\n".join(relevant_contexts)
 
     response = client.responses.create(
-        model="gpt-5-chat-latest",
+        model='gpt-4o-mini',
         input=[
             {"role": "system", "content": "You are an expert at explaining electricity bills clearly and factually."},
             {"role": "user", "content": prompt}
@@ -48,6 +48,7 @@ def get_agent():
     """
     explanation_agent = Agent(
         name="Explanation agent",
+        model='gpt-4o-mini',
         instructions=(
             "Provide detailed and factual explanations about electricity bills."
             "Help the user understand their charges, consumption, and other components."
