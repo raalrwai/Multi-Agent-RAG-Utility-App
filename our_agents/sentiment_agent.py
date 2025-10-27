@@ -8,7 +8,7 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 
 def analyze_sentiment_and_intent(text: str) -> dict:
-    print("[sentiment check]")
+    # print("[sentiment check]")
     
     prompt = (
         "You are an assistant that analyzes customer queries for sentiment and intent.\n"
