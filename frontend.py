@@ -29,10 +29,7 @@ manager = Manager_Agent()
 @st.cache_resource
 def make_session(name):
     print("SESSION MADE")
-    session_dir = os.path.join(os.getcwd(), 'sessions/')
-    if not os.path.exists(session_dir):
-        os.mkdir(session_dir)
-    return SQLiteSession(name, os.path.join(session_dir,'db.sqlite'))
+    return SQLiteSession(name,'session_history.sqlite')
         
 # saved_stdout = sys.stdout
 saved_stdout = log_gen.start_log()
