@@ -58,12 +58,12 @@ def get_agent():
     return explanation_agent
 
 
-async def get_explanation(name: str, question: str):
+async def get_explanation(name: str, question: str, session=None):
     """
     Runs the Explanation Agent asynchronously to generate an explanation.
     """
     query = f'For the customer "{name}", explain the following question: {question}'
-    result = await Runner.run(get_agent(), query)
+    result = await Runner.run(get_agent(), query, session=session)
     print('[explanation] ', result.final_output, end='\n\n')
     return result.final_output
 
