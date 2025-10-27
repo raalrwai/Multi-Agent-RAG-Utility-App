@@ -10,17 +10,30 @@ import utility_functions.rag as rag
 import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 
+from openai import OpenAI
+from agents import SQLiteSession
+
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")
 PINECONE_INDEX_NAME = "retrieval-augmented-generation"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=OPENAI_API_KEY)
 
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
 
 manager = Manager_Agent()
 
+@st.cache_resource
+def make_session(name):
+    print("SESSION MADE")
+    session_dir = os.path.join(os.getcwd(), 'sessions/')
+    if not os.path.exists(session_dir):
+        os.mkdir(session_dir)
+    return SQLiteSession(name, os.path.join(session_dir,'db.sqlite'))
+        
 # saved_stdout = sys.stdout
 saved_stdout = log_gen.start_log()
 async def main(): 
@@ -59,13 +72,15 @@ async def main():
 
     if user_query and user_query.strip():
         st.session_state.messages.append({"role": "user", "content": user_query})
+        session = make_session(user_name)
         print(f'[{user_name}] ', user_query)
 
         with st.spinner("Thinking..."):
             result = await manager.handle_query(
                 user_query=user_query,
                 user_name=user_name,
-                has_bill=has_bill
+                has_bill=has_bill,
+                session=session
             )
 
         if result:

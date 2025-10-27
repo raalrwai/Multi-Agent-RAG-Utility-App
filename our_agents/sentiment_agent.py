@@ -25,7 +25,7 @@ def analyze_sentiment_and_intent(text: str) -> dict:
         temperature=0,
     )
     content = response.choices[0].message.content.strip()
-    print('[sentiment] ', content, end='\n\n')
+    # print('[sentiment] ', content)
     try:
         result = json.loads(content)
         if "sentiment" in result and "intent" in result:

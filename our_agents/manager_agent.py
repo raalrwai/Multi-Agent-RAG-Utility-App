@@ -95,7 +95,7 @@ class Manager_Agent:
         print('[manager] ', result.final_output, end='\n\n')
         return result.final_output
 
-    async def handle_query(self, user_query: str, user_name: str = None, has_bill: bool = False) -> dict:
+    async def handle_query(self, user_query: str, user_name: str = None, has_bill: bool = False, session=None) -> dict:
         full_query = f"{user_name or 'User'}: {user_query}"
         billing_keywords = ["bill", "amount", "usage", "charge", "due date", "balance"]
         is_billing_related = any(kw in user_query.lower() for kw in billing_keywords)
@@ -104,12 +104,17 @@ class Manager_Agent:
         sentiment_result = sentiment_agent.analyze_sentiment_and_intent(user_query)
         sentiment = sentiment_result.get("sentiment", "neutral")
         intent = sentiment_result.get("intent", "unknown")
-        print(f'[Sentiment Agent] Sentiment: {sentiment}, Intent: {intent}')
+        output = f'[Sentiment Agent] Sentiment: {sentiment}, Intent: {intent}'
+        print(output)
+        await session.add_items([
+            {"role": "user", "content": user_query},
+            {"role": "assistant", "content": output}
+        ])
 
         result = {}
 
         if is_billing_related:
-            bill_response = await billing_agent.get_info(user_name, user_query)
+            bill_response = await billing_agent.get_info(user_name, user_query, session=session)
 
             explanation_prompt = (
                 f"The user asked about their bill.\n\n"
@@ -118,7 +123,7 @@ class Manager_Agent:
                 "Now explain this clearly to the user."
             )
 
-            result["response"] = await explanation_agent.get_explanation(user_name, explanation_prompt)
+            result["response"] = await explanation_agent.get_explanation(user_name, explanation_prompt, session=session)
             result["source"] = "billing + explanation + sentiment"
 
         else:
@@ -128,7 +133,7 @@ class Manager_Agent:
             else:
                 explanation_prompt = f"{user_query}\n\nSentiment noted: {sentiment}. Intent noted: {intent}"
 
-            result["response"] = await explanation_agent.get_explanation(user_name, explanation_prompt)
+            result["response"] = await explanation_agent.get_explanation(user_name, explanation_prompt, session=session)
             result["source"] = "explanation + sentiment"
 
         return result
