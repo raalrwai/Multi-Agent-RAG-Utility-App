@@ -1,3 +1,4 @@
+import asyncio
 import os
 import sys
 
@@ -22,8 +23,7 @@ manager = Manager_Agent()
 
 # saved_stdout = sys.stdout
 saved_stdout = log_gen.start_log()
-def main(): 
-  
+async def main(): 
     st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
 
     with st.sidebar:
@@ -62,7 +62,7 @@ def main():
         print(f'[{user_name}] ', user_query)
 
         with st.spinner("Thinking..."):
-            result = manager.handle_query(
+            result = await manager.handle_query(
                 user_query=user_query,
                 user_name=user_name,
                 has_bill=has_bill
@@ -77,6 +77,17 @@ def main():
 
         st.rerun()
 
+def get_or_create_event_loop():
+    try:
+        return asyncio.get_event_loop()
+    except RuntimeError as e:
+        if 'There is no current event loop' in str(e):
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            return loop
+        else:
+            raise
 
 if __name__ == "__main__":
-    main()
+    loop = get_or_create_event_loop()
+    loop.run_until_complete(main())
