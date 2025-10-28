@@ -8,7 +8,7 @@ import utility_functions.rag as rag
 import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 from openai import OpenAI
-from agents import SQLiteSession
+from agents import SQLiteSession # type: ignore
 
 # --- Load environment variables ---
 load_dotenv()
