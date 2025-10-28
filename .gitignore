@@ -217,3 +217,5 @@ __marimo__/
 
 # Logging
 logs/
+
+Dockerfile
