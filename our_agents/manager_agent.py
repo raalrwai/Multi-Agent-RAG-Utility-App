@@ -60,7 +60,6 @@ class Manager_Agent:
         billing_keywords = ["bill", "amount", "usage", "charge", "due date", "balance"]
         is_billing_related = any(kw in user_query.lower() for kw in billing_keywords)
 
-        # Analyze sentiment synchronously here because the existing analyze_sentiment_and_intent function is sync.
         sentiment_result = sentiment_agent.analyze_sentiment_and_intent(user_query)
         sentiment = sentiment_result.get("sentiment", "neutral")
         intent = sentiment_result.get("intent", "unknown")
