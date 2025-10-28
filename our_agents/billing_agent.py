@@ -48,7 +48,7 @@ def get_agent():
     )
     return billing_agent
 
-async def get_info(name, session=None):
+async def get_info(name, question, session=None):
     query = 'Using the bill belonging to "' + name + '", answer the following question: ' + question
     
     result = await Runner.run(get_agent(), query, session=session)    

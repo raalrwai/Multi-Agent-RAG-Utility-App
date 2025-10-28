@@ -7,3 +7,4 @@ pinecone
 python-dotenv
 streamlit
 pymupdf
+openai-agents
