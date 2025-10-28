@@ -11,7 +11,7 @@ import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 
 from openai import OpenAI
-from agents import SQLiteSession
+from agents import SQLiteSession # type: ignore
 
 load_dotenv()
 
