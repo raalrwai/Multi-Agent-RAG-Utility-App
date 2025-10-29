@@ -19,7 +19,7 @@ PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
 PINECONE_ENVIRONMENT = os.getenv('PINECONE_ENVIRONMENT')
 PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 
-print(PINECONE_API_KEY)
+
 client = OpenAI(api_key=OPENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)

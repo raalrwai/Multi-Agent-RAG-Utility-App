@@ -4,7 +4,11 @@ FROM python:3.10
 WORKDIR /app
 
 # Copy application code
-COPY . .
+RUN apt-get update && apt-get install -y git curl && rm -rf /var/lib/apt/lists/*
+RUN git clone -b Mickey https://github.com/raalrwai/Multi-Agent-RAG-Utility-App .
+COPY .env .
+
+# COPY . .
 
 # # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
