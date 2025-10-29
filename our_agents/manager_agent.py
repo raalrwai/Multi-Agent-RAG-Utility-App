@@ -62,7 +62,7 @@ class Manager_Agent:
 
     async def handle_query(self, user_query: str, user_name: str = None, has_bill: bool = False, session=None) -> dict:
         full_query = f"{user_name or 'User'}: {user_query}"
-        billing_keywords = ["bill", "amount", "usage", "charge", "due date", "balance"]
+        billing_keywords = ["bill", "amount", "usage", "charge", "due date", "balance", "month", "monthly", "payment", "cost"]
         is_billing_related = any(kw in user_query.lower() for kw in billing_keywords)
 
         # Analyze sentiment synchronously because the existing function is sync.
