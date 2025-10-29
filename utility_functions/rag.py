@@ -42,7 +42,6 @@ def vision_embed_file(file_path, multi_modal_model='gpt-4.1-mini', embedding_mod
     file_id = create_file(file_path)
     # st.write(f"Debug: created file_id: {file_id}")
 
-    time.sleep(2)
 
     response = client.responses.create(
         model=multi_modal_model,
