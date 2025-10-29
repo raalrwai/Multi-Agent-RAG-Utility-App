@@ -6,16 +6,13 @@ import time
 
 import numpy as np
 import pandas as pd
-from pdf2image import convert_from_path
 import pymupdf
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
 from pinecone import Pinecone
 
-if not os.getenv("RUNNING_IN_DOCKER"):
-    load_dotenv()
-# load_dotenv()
+load_dotenv()
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
@@ -24,7 +21,7 @@ PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 
 print(PINECONE_API_KEY)
 client = OpenAI(api_key=OPENAI_API_KEY)
-pc = Pinecone(api_key=PINECONE_API_KEY)
+pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
 
 
@@ -79,12 +76,6 @@ def file_to_upsert(file):
         doc.close()  
       
         vector_id = hash_file(png_path)
-
-        # image = convert_from_path(file_path)
-        # jpeg_path = os.path.join(tmp_dir,'uploaded.jpeg')
-        # image[0].save(jpeg_path, 'JPEG')
-
-        # vector_id = hash_file(jpeg_path)
 
         res = index.fetch(ids=[vector_id])
         if vector_id in res.vectors:

@@ -5,6 +5,7 @@
 ## Dockerfile
 To use the Dockerfile, run the following lines.
 
+Make sure to replace .env.example with your own .env file.
 <pre>
   <code>
     
