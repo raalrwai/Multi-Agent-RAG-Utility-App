@@ -2,14 +2,17 @@ import os
 
 import pandas as pd
 import json
-
+from pinecone import Pinecone
 from dotenv import load_dotenv
 from openai import OpenAI
+
 from agents import Agent, Runner, function_tool, FunctionTool # type: ignore
 
 import utility_functions.rag as rag
 import asyncio
 import streamlit
+
+
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -70,7 +73,3 @@ if __name__ == '__main__':
             answer = '"' + response.replace('\n', ' ').replace('"', "'") +'"'
             content = ','.join([name,question,answer]) + '\n'
             f.write(content)
-
-                
-
-
