@@ -219,3 +219,5 @@ __marimo__/
 
 # Logging
 logs/
+
+session_history.sqlite
