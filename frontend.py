@@ -11,12 +11,15 @@ from openai import OpenAI
 from agents import SQLiteSession # type: ignore
 
 # --- Load environment variables ---
-load_dotenv()
+if not os.getenv("RUNNING_IN_DOCKER"):
+    load_dotenv()
+# load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")
 PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
@@ -29,7 +32,7 @@ def make_session(name):
     print("SESSION MADE")
     return SQLiteSession(name, 'session_history.sqlite')
 
-saved_stdout = log_gen.start_log()
+# saved_stdout = log_gen.start_log()
 
 # --- Initialize modal flag ---
 if "show_modal" not in st.session_state:
