@@ -8,3 +8,6 @@ python-dotenv
 streamlit
 pymupdf
 openai-agents
+langgraph
+langchain
+langchain-openai
