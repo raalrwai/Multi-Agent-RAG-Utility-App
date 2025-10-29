@@ -9,7 +9,7 @@ import utility_functions.rag as rag
 import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 from openai import OpenAI
-from agents import SQLiteSession  
+from agents import SQLiteSession   # type: ignore
 
 load_dotenv()
 
@@ -51,7 +51,7 @@ async def main():
     with st.sidebar:
         st.header("Electricity Bills Visual QA")
 
-        if st.button("Learn More", key="learn_more_button"):
+        if st.button("📄 Learn More", key="learn_more_button"):
             st.session_state.show_company_modal = True
 
         st.markdown("""
