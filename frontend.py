@@ -11,12 +11,20 @@ from our_agents.manager_agent import Manager_Agent
 from openai import OpenAI
 from agents import SQLiteSession  
 
+<<<<<<< HEAD
 load_dotenv()
+=======
+# --- Load environment variables ---
+if not os.getenv("RUNNING_IN_DOCKER"):
+    load_dotenv()
+# load_dotenv()
+>>>>>>> b09a9a2074101a9e309d2f22823ea07978ae63d6
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
 PINECONE_ENVIRONMENT = os.getenv("PINECONE_ENVIRONMENT")
 PINECONE_INDEX_NAME = "retrieval-augmented-generation"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
@@ -28,7 +36,7 @@ def make_session(name):
     print("SESSION MADE")
     return SQLiteSession(name, 'session_history.sqlite')
 
-saved_stdout = log_gen.start_log()
+# saved_stdout = log_gen.start_log()
 
 if "show_modal" not in st.session_state:
     st.session_state.show_modal = False
