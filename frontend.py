@@ -8,7 +8,7 @@ import utility_functions.rag as rag
 import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 from openai import OpenAI
-from agents import SQLiteSession # type: ignore
+from agents import SQLiteSession  # type: ignore
 
 # --- Load environment variables ---
 load_dotenv()
@@ -35,14 +35,12 @@ saved_stdout = log_gen.start_log()
 if "show_modal" not in st.session_state:
     st.session_state.show_modal = False
 
-
 # --- Function to display PDF inline ---
 def show_pdf_in_modal(pdf_path):
     """Return a base64 iframe for inline PDF rendering."""
     with open(pdf_path, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
     return base64_pdf
-
 
 # --- Main async app ---
 async def main():
@@ -82,20 +80,19 @@ async def main():
 
         modal_container = st.container()
         with modal_container:
-            # Top-right X button
-            col1, col2 = st.columns([0.95, 0.05])
-            with col2:
+            st.markdown("<h3>Sample Document</h3>", unsafe_allow_html=True)
+
+            # Columns: PDF, Requirements, Close button
+            pdf_col, req_col, close_col = st.columns([0.7, 0.25, 0.05])
+
+            # --- Close button column ---
+            with close_col:
                 if st.button("×", key="modal_close"):
                     st.session_state.show_modal = False
                     print("Modal closed via X")
                     st.rerun()  # Forces immediate rerun to remove modal
 
-            # Header above PDF
-            st.markdown("<h3>Sample Document</h3>", unsafe_allow_html=True)
-
-            # PDF + Requirements side by side
-            pdf_col, req_col = st.columns([0.7, 0.3])
-
+            # --- PDF column ---
             with pdf_col:
                 st.markdown(
                     f'''
@@ -111,6 +108,7 @@ async def main():
                     unsafe_allow_html=True
                 )
 
+            # --- Requirements column ---
             with req_col:
                 st.markdown("""
                 <div style="padding-left:10px;">
@@ -165,7 +163,6 @@ async def main():
 
         st.rerun()
 
-
 # --- Async event loop fix for Streamlit ---
 def get_or_create_event_loop():
     try:
@@ -178,8 +175,6 @@ def get_or_create_event_loop():
         else:
             raise
 
-
 if __name__ == "__main__":
     loop = get_or_create_event_loop()
     loop.run_until_complete(main())
-
