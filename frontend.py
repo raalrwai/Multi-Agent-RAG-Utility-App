@@ -51,6 +51,10 @@ async def main():
     # --- Sidebar ---
     with st.sidebar:
         st.header("Electricity Bills Visual QA")
+
+        if st.button("📄 Learn More", key="learn_more_button"):
+            st.session_state.show_company_modal = True
+
         st.markdown("""
         Upload your **electricity bill PDF** and chat with it.  
         The app will extract, embed, and answer your questions naturally.

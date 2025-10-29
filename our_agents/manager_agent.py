@@ -77,6 +77,16 @@ class Manager_Agent:
         avg_score = self.get_average_sentiment_score()
         print(f"[Avg_Score] Average Sentiment Score: {avg_score:.3f}")
 
+        greeting_intents = [
+        'greeting', 'greet', 'hello', 'hi', 'salutation', 'checking in', 'well-being', 'asking how you are', 'saying hi', 'friendly approach', 'welcoming', 'greeting the assistant']
+        if any(intent.lower().startswith(greet) or intent.lower() == greet for greet in greeting_intents):
+            greeting_reply = f"Hello {user_name or 'there'}! Thanks for your friendly message. How can I help you today?"
+            await session.add_items([
+                {"role": "user", "content": user_query},
+                {"role": "assistant", "content": greeting_reply}
+            ])
+            return {"response": greeting_reply, "source": "manager_greeting"}
+
         output = f'[Sentiment Agent] Sentiment: {sentiment}, Intent: {intent}'
         await session.add_items([
             {"role": "user", "content": user_query},
