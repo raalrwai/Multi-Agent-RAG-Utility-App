@@ -10,7 +10,7 @@ Make sure to replace .env.example with your own .env file.
   <code>
     
     docker build --no-cache -t chatbot .
-    docker run -p 8501:8501 --env-file .env chatbot
+    docker run -p 8501:8501 chatbot
 
   </code>
 </pre>
