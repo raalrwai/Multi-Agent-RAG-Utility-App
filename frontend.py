@@ -8,9 +8,8 @@ import utility_functions.rag as rag
 import utility_functions.log_generator as log_gen
 from our_agents.manager_agent import Manager_Agent
 from openai import OpenAI
-from agents import SQLiteSession  # type: ignore
+from agents import SQLiteSession  
 
-# --- Load environment variables ---
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
@@ -23,7 +22,6 @@ pc = Pinecone(api_key=PINECONE_API_KEY, environment=PINECONE_ENVIRONMENT)
 index = pc.Index(PINECONE_INDEX_NAME)
 manager = Manager_Agent()
 
-# --- Cache the SQLite session ---
 @st.cache_resource
 def make_session(name):
     print("SESSION MADE")
@@ -31,24 +29,30 @@ def make_session(name):
 
 saved_stdout = log_gen.start_log()
 
-# --- Initialize modal flag ---
 if "show_modal" not in st.session_state:
     st.session_state.show_modal = False
+if "show_company_modal" not in st.session_state:
+    st.session_state.show_company_modal = False
 
-# --- Function to display PDF inline ---
 def show_pdf_in_modal(pdf_path):
     """Return a base64 iframe for inline PDF rendering."""
     with open(pdf_path, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
     return base64_pdf
 
+# --- Page config ---
+st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
+
 # --- Main async app ---
 async def main():
-    st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
 
     # --- Sidebar ---
     with st.sidebar:
         st.header("Electricity Bills Visual QA")
+
+        if st.button("📄 Learn More", key="learn_more_button"):
+            st.session_state.show_company_modal = True
+
         st.markdown("""
         Upload your **electricity bill PDF** and chat with it.  
         The app will extract, embed, and answer your questions naturally.
@@ -70,7 +74,6 @@ async def main():
 
         user_name = st.text_input("Full Name:")
 
-    # --- Modal Overlay (PDF viewer + X close + side-by-side requirements) ---
     if st.session_state.show_modal:
         try:
             pdf_base64 = show_pdf_in_modal("data/sample_bill.pdf")
@@ -82,17 +85,14 @@ async def main():
         with modal_container:
             st.markdown("<h3>Sample Document</h3>", unsafe_allow_html=True)
 
-            # Columns: PDF, Requirements, Close button
             pdf_col, req_col, close_col = st.columns([0.7, 0.25, 0.05])
 
-            # --- Close button column ---
             with close_col:
                 if st.button("×", key="modal_close"):
                     st.session_state.show_modal = False
                     print("Modal closed via X")
-                    st.rerun()  # Forces immediate rerun to remove modal
+                    st.rerun()  
 
-            # --- PDF column ---
             with pdf_col:
                 st.markdown(
                     f'''
@@ -108,7 +108,6 @@ async def main():
                     unsafe_allow_html=True
                 )
 
-            # --- Requirements column ---
             with req_col:
                 st.markdown("""
                 <div style="padding-left:10px;">
@@ -122,7 +121,39 @@ async def main():
                 </div>
                 """, unsafe_allow_html=True)
 
-    # --- Chat Section ---
+    if st.session_state.show_company_modal:
+        try:
+            company_pdf_base64 = show_pdf_in_modal("data/company_overview.pdf")
+        except Exception as e:
+            company_pdf_base64 = ""
+            print(f"Error loading company PDF: {e}")
+
+        company_modal_container = st.container()
+        with company_modal_container:
+            st.markdown("<h3>About Our Company</h3>", unsafe_allow_html=True)
+
+            pdf_col, close_col = st.columns([0.95, 0.05])
+
+            with close_col:
+                if st.button("×", key="company_modal_close"):
+                    st.session_state.show_company_modal = False
+                    st.rerun()
+
+            with pdf_col:
+                st.markdown(
+                    f'''
+                    <div style="width:100%; height:80vh; overflow:auto; border:1px solid #ccc; border-radius:8px;">
+                        <iframe 
+                            src="data:application/pdf;base64,{company_pdf_base64}" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:none;">
+                        </iframe>
+                    </div>
+                    ''',
+                    unsafe_allow_html=True
+                )
+
     st.title("Chat with Your Bill")
 
     if "messages" not in st.session_state:
@@ -152,7 +183,7 @@ async def main():
                     session=session
                 )
             except Exception as e:
-                result = {"response": f"⚠️ Error: {str(e)}", "source": "System"}
+                result = {"response": f"Error: {str(e)}", "source": "System"}
 
         if result:
             st.session_state.messages.append({
@@ -178,3 +209,4 @@ def get_or_create_event_loop():
 if __name__ == "__main__":
     loop = get_or_create_event_loop()
     loop.run_until_complete(main())
+
