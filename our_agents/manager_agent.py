@@ -46,11 +46,16 @@ class Manager_Agent:
             ],
         )
 
+    sentiment_scores = []
+    def get_average_sentiment_score(self):
+        if self.sentiment_scores:
+            return sum(self.sentiment_scores) / len(self.sentiment_scores)
+        return 0.0
+
     async def run(self, query):
-        result = await Runner.run(self.manager_agent, query)     
+        result = await Runner.run(self.manager_agent, query)
         print('[manager] ', result.final_output, end='\n\n')
         return result.final_output
-
 
     async def run_manager_agent(self, query: str) -> str:
         result = await Runner.run(self.manager_agent, query)
@@ -62,12 +67,29 @@ class Manager_Agent:
         billing_keywords = ["bill", "amount", "usage", "charge", "due date", "balance"]
         is_billing_related = any(kw in user_query.lower() for kw in billing_keywords)
 
-        # Analyze sentiment synchronously here because the existing analyze_sentiment_and_intent function is sync.
+        # Analyze sentiment synchronously because the existing function is sync.
         sentiment_result = sentiment_agent.analyze_sentiment_and_intent(user_query)
         sentiment = sentiment_result.get("sentiment", "neutral")
         intent = sentiment_result.get("intent", "unknown")
+        score = sentiment_result.get("score", 0.0)
+        self.sentiment_scores.append(score)
+        print(f'[Sentiment Agent] Sentiment: {sentiment}, Score: {score:.3f}, Intent: {intent}')
+        
+        print('Sentiment scores so far:', self.sentiment_scores)
+        avg_score = self.get_average_sentiment_score()
+        print(f"[Avg_Score] Average Sentiment Score: {avg_score:.3f}")
+
+        greeting_intents = [
+        'greeting', 'greet', 'hello', 'hi', 'salutation', 'checking in', 'well-being', 'asking how you are', 'saying hi', 'friendly approach', 'welcoming', 'greeting the assistant']
+        if any(intent.lower().startswith(greet) or intent.lower() == greet for greet in greeting_intents):
+            greeting_reply = f"Hello {user_name or 'there'}! Thanks for your friendly message. How can I help you today?"
+            await session.add_items([
+                {"role": "user", "content": user_query},
+                {"role": "assistant", "content": greeting_reply}
+            ])
+            return {"response": greeting_reply, "source": "manager_greeting"}
+
         output = f'[Sentiment Agent] Sentiment: {sentiment}, Intent: {intent}'
-        print(output)
         await session.add_items([
             {"role": "user", "content": user_query},
             {"role": "assistant", "content": output}
@@ -99,3 +121,4 @@ class Manager_Agent:
             result["source"] = "explanation + sentiment"
 
         return result
+
