@@ -1,3 +1,4 @@
+
 import asyncio
 import os
 import base64
@@ -50,7 +51,7 @@ async def main():
     with st.sidebar:
         st.header("Electricity Bills Visual QA")
 
-        if st.button("📄 Learn More", key="learn_more_button"):
+        if st.button("Learn More", key="learn_more_button"):
             st.session_state.show_company_modal = True
 
         st.markdown("""
@@ -62,7 +63,7 @@ async def main():
         with col1:
             pdf_upload = st.file_uploader("Upload PDF file", type="pdf")
         with col2:
-            if st.button("ℹ️", key="info_button"):
+             if st.button("?", key="info_button"):
                 st.session_state.show_modal = True
                 print("Info button clicked, modal shown")
 
