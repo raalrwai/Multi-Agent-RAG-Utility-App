@@ -41,7 +41,7 @@ class Manager_Agent:
                 ),
                 explanation_agent.get_agent().as_tool(
                     tool_name="explanation_expert",
-                    tool_description="Provides detailed explanations or general conversation replies."
+                    tool_description="Provides detailed explanations or general conversation replies. For greeting message by the consumer you should return greeting by name if name of the customer is available to you"
                 ),
             ],
         )

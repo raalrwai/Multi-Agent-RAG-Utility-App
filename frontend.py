@@ -43,38 +43,38 @@ def show_pdf_in_modal(pdf_path):
 
 # --- Page config ---
 st.set_page_config(page_title="Electricity Bills Visual QA", layout="wide")
-
+ 
 # --- Main async app ---
 async def main():
 
     # --- Sidebar ---
     with st.sidebar:
         st.header("Electricity Bills Visual QA")
-
-        if st.button("📄 Learn More", key="learn_more_button"):
+ 
+        if st.button("Learn More", key="learn_more_button"):
             st.session_state.show_company_modal = True
-
+ 
         st.markdown("""
-        Upload your **electricity bill PDF** and chat with it.  
-        The app will extract, embed, and answer your questions naturally.
+        💬 Ask anything about your bill.
         """)
-
+ 
         col1, col2 = st.columns([4, 1])
+       
         with col1:
-            pdf_upload = st.file_uploader("Upload PDF file", type="pdf")
-        with col2:
-             if st.button("?", key="info_button"):
+            pdf_upload = st.file_uploader("Upload PDF file", type=["pdf"])
+        #with col2:
+            if st.button("See Your Bill Here", key="info_button"):
                 st.session_state.show_modal = True
                 print("Info button clicked, modal shown")
-
+ 
         has_bill = False
         if pdf_upload:
             rag.file_to_upsert(pdf_upload)
             has_bill = True
             st.success("Bill uploaded and processed!")
-
+ 
         user_name = st.text_input("Full Name:")
-
+ 
     if st.session_state.show_modal:
         try:
             pdf_base64 = show_pdf_in_modal("data/sample_bill.pdf")
@@ -154,9 +154,9 @@ async def main():
                     ''',
                     unsafe_allow_html=True
                 )
-
+ 
     st.title("Chat with Your Bill")
-
+ 
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
