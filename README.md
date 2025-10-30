@@ -5,12 +5,13 @@
 ## Dockerfile
 To use the Dockerfile, run the following lines.
 
+Make sure to replace .env.example with your own .env file.
 <pre>
   <code>
     
-    docker build --no-cache -t billing .
-    docker run -p 8501:8501 billing
-    
+    docker build --no-cache -t chatbot .
+    docker run -p 8501:8501 chatbot
+
   </code>
 </pre>
 

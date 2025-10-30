@@ -3,6 +3,8 @@ import os
 from openai import OpenAI
 from agents import Agent  # type: ignore
 
+import nltk
+nltk.download('vader_lexicon')
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 _sentiment_analyzer = SentimentIntensityAnalyzer()
 
